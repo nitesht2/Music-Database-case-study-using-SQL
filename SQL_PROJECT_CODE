@@ -1,0 +1,88 @@
+
+/*Query 1 - query used for first insight*/
+
+SELECT A.ArtistId, A.Name, G.GenreId, G.Name as genre_name, COUNT(*) Songs
+FROM Artist A
+JOIN Album AL
+ON A.ArtistId = AL.ArtistId
+JOIN Track T
+ON AL.AlbumId = T.AlbumId
+JOIN Genre G
+ON T.GenreId = G.GenreId
+GROUP BY 1,2,3,4
+HAVING G.GenreId = 1
+ORDER BY Songs DESC
+LIMIT 10;
+
+/*Query 2 - query used for second insight*/
+
+SELECT A.Name, sum(il.UnitPrice) Amountspent
+FROM Artist A
+JOIN Album AL
+ON A.ArtistId = AL.ArtistId
+JOIN Track T
+ON AL.AlbumId = T.AlbumId
+JOIN InvoiceLine il
+ON il.TrackId = t.TrackId
+JOIN Invoice i
+ON il.InvoiceId = i.InvoiceId
+JOIN Customer c
+On i.CustomerId = c.CustomerId
+GROUP BY a.Name
+ORDER BY Amountspent DESC
+
+/*Query 3 - query used for third insight*/
+
+SELECT c.CustomerId, A.Name Artist_Name,  c.FirstName, c.LastName, sum(il.quantity*il.UnitPrice) Amountspent
+FROM Artist A
+JOIN Album AL
+ON A.ArtistId = AL.ArtistId
+JOIN Track t
+ON AL.AlbumId = t.AlbumId
+JOIN InvoiceLine il
+ON il.TrackId = t.TrackId
+JOIN Invoice i
+ON il.InvoiceId = i.InvoiceId
+JOIN Customer c
+On i.CustomerId = c.CustomerId
+WHERE a.Name = 'Iron Maiden'
+GROUP BY Artist_Name, c.CustomerId, c.FirstName, c.LastName
+ORDER BY amountspent DESC;
+
+
+/*Query 4 - query used for fourth insight*/
+
+WITH sub1 AS (
+SELECT i.billingcountry Country, g.name Genre, SUM(iL.quantity) Quantity
+FROM invoice i
+JOIN invoiceline iL
+ON iL.invoiceid = i.InvoiceId
+JOIN track t
+ON iL.trackid = t.TrackId
+JOIN genre g
+ON g.genreid = t.GenreId
+GROUP BY 1, 2
+ORDER BY 1),
+
+sub2 AS (
+	SELECT sub1.country, MAX(sub1.quantity) Max
+	FROM sub1
+	GROUP BY 1),
+
+sub3 AS (
+	SELECT i.billingcountry Country, g.name Genre, SUM(iL.quantity) Quantity
+FROM invoice i
+JOIN invoiceline iL
+ON iL.invoiceid = i.InvoiceId
+JOIN track t
+ON iL.trackid = t.TrackId
+JOIN genre g
+ON g.genreid = t.GenreId
+GROUP BY 1, 2
+ORDER BY 1)
+
+SELECT sub3.Country, sub3.Genre, SUM(sub3.Quantity) purchases
+FROM sub2
+JOIN sub3
+ON sub2.country = sub3.country AND sub2.max = sub3.quantity
+GROUP BY 1, 2
