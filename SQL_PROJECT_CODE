@@ -1,5 +1,5 @@
 
-/*Query 1 - Which countries have the most Invoices?*/
+*Query 1 - Which countries have the most Invoices?*
 
 select i.BillingCountry,count(i.invoiceid)
 From Invoice i
